@@ -1,16 +1,25 @@
 from fastapi import FastAPI
 
-from app.core.config import settings
-
-# Kreiranje FastAPI aplikacije
-app = FastAPI(
-    title=settings.APP_NAME,
-)
+from app.core.config import Settings, settings
+from app.routers.health import router as health_router
 
 
-@app.get("/health")
-def health():
+def create_app(config: Settings = settings) -> FastAPI:
     """
-    Jednostavna provjera radi li aplikacija.
+    Kreira i konfigurira FastAPI aplikaciju.
     """
-    return {"status": "ok"}
+    app = FastAPI(
+        title=config.APP_NAME,
+        debug=config.ENV == "dev",
+    )
+
+    app.include_router(
+        health_router,
+        prefix="/health",
+        tags=["health"],
+    )
+
+    return app
+
+
+app = create_app()
