@@ -1,8 +1,10 @@
 from fastapi import FastAPI
 
+from app.core.config import settings
+
 # Kreiranje FastAPI aplikacije
 app = FastAPI(
-    title="Computer Service System API",
+    title=settings.APP_NAME,
 )
 
 
