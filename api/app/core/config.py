@@ -11,5 +11,11 @@ class Settings(BaseSettings):
     # Tajni ključ za JWT
     JWT_SECRET: str = "change-me"
 
+    # Veza prema PostgreSQL bazi
+    DATABASE_URL: str
+
+    class Config:
+        env_file = ".env"
+
 
 settings = Settings()
