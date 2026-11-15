@@ -1,16 +1,17 @@
-from app.core.database import AsyncSessionLocal
+from app.core.database import SessionLocal
 
 
-async def get_db():
+def get_db():
     """
-    Otvara sesiju za jedan zahtjev.
-    Ako sve prođe radi commit,
-    a u slučaju greške rollback.
+    Otvara sesiju baze za jedan HTTP zahtjev.
     """
-    async with AsyncSessionLocal() as session:
-        try:
-            yield session
-            await session.commit()
-        except Exception:
-            await session.rollback()
-            raise
+    db = SessionLocal()
+
+    try:
+        yield db
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise
+    finally:
+        db.close()
