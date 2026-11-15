@@ -50,3 +50,9 @@ class Device(Base):
         "User",
         back_populates="devices",
     )
+
+    # Jedan uređaj može imati više servisnih zahtjeva
+    service_requests = relationship(
+        "ServiceRequest",
+        back_populates="device",
+    )
