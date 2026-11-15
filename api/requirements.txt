@@ -6,3 +6,4 @@ asyncpg
 alembic
 greenlet
 psycopg2-binary
+bcrypt
