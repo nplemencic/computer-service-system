@@ -1,7 +1,7 @@
 from datetime import datetime
 
 from sqlalchemy import Boolean, DateTime, String
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base
 
@@ -46,4 +46,10 @@ class User(Base):
         DateTime,
         default=datetime.utcnow,
         nullable=False,
+    )
+
+    # Korisnik može imati više uređaja
+    devices = relationship(
+        "Device",
+        back_populates="owner",
     )
