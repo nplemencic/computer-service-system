@@ -11,6 +11,9 @@ class Settings(BaseSettings):
     # Tajni ključ za JWT
     JWT_SECRET: str = "change-me"
 
+    # Trajanje access tokena u minutama
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
+
     # Veza prema PostgreSQL bazi
     DATABASE_URL: str
 

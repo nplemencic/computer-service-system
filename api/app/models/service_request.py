@@ -1,9 +1,16 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from datetime import datetime
 
 from sqlalchemy import DateTime, ForeignKey, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base
+
+if TYPE_CHECKING:
+    from app.models.device import Device
 
 
 class ServiceRequest(Base):
@@ -51,7 +58,6 @@ class ServiceRequest(Base):
     )
 
     # Zahtjev pripada jednom uređaju
-    device = relationship(
-        "Device",
+    device: Mapped["Device"] = relationship(
         back_populates="service_requests",
     )

@@ -4,6 +4,8 @@ from app.models.user import User
 from app.models.device import Device
 from app.models.service_request import ServiceRequest
 
+from app.core.security import hash_password
+
 
 def create_users() -> None:
     """
@@ -16,17 +18,17 @@ def create_users() -> None:
         users = [
             {
                 "username": "technician",
-                "password_hash": "seed-password",
+                "password_hash": hash_password("test123"),
                 "role": "technician",
             },
             {
                 "username": "customer1",
-                "password_hash": "seed-password",
+                "password_hash": hash_password("test123"),
                 "role": "customer",
             },
             {
                 "username": "customer2",
-                "password_hash": "seed-password",
+                "password_hash": hash_password("test123"),
                 "role": "customer",
             },
         ]

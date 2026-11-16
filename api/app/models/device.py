@@ -1,9 +1,17 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from datetime import datetime
 
 from sqlalchemy import DateTime, ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base
+
+if TYPE_CHECKING:
+    from app.models.user import User
+    from app.models.service_request import ServiceRequest
 
 
 class Device(Base):
@@ -46,13 +54,11 @@ class Device(Base):
     )
 
     # Jedan uređaj pripada jednom korisniku
-    owner = relationship(
-        "User",
+    owner: Mapped["User"] = relationship(
         back_populates="devices",
     )
 
     # Jedan uređaj može imati više servisnih zahtjeva
-    service_requests = relationship(
-        "ServiceRequest",
+    service_requests: Mapped[list["ServiceRequest"]] = relationship(
         back_populates="device",
     )

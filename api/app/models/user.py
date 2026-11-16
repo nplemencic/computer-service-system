@@ -1,9 +1,16 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from datetime import datetime
 
 from sqlalchemy import Boolean, DateTime, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base
+
+if TYPE_CHECKING:
+    from app.models.device import Device
 
 
 class User(Base):
@@ -49,7 +56,6 @@ class User(Base):
     )
 
     # Korisnik može imati više uređaja
-    devices = relationship(
-        "Device",
+    devices: Mapped[list["Device"]] = relationship(
         back_populates="owner",
     )
