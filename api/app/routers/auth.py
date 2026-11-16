@@ -8,12 +8,10 @@ from app.schemas.user import (
     UserResponse,
 )
 from app.services.auth_service import authenticate_user
-
 from app.core.security import create_access_token
-
 from app.core.deps import get_current_user
-
 from app.models.user import User
+from app.core.deps import require_technician
 
 router = APIRouter()
 
@@ -65,4 +63,18 @@ def get_me(
     """
 
     return current_user
+
+@router.get("/technician-only")
+def technician_only(
+    current_user: User = Depends(
+        require_technician
+    ),
+):
+    """
+    Test endpoint dostupan samo tehničaru.
+    """
+
+    return {
+        "message": "Technician access granted"
+    }
 

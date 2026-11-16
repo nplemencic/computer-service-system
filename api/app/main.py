@@ -1,11 +1,11 @@
 import app.models
-
 from fastapi import FastAPI
-
 from app.core.config import Settings, settings
 from app.routers.health import router as health_router
-
 from app.routers.auth import router as auth_router
+from app.routers.devices import (
+    router as devices_router
+)
 
 
 
@@ -28,6 +28,12 @@ def create_app(config: Settings = settings) -> FastAPI:
         auth_router,
         prefix="/auth",
         tags=["auth"],
+    )
+
+    app.include_router(
+        devices_router,
+        prefix="/devices",
+        tags=["devices"],
     )
 
     return app

@@ -7,10 +7,13 @@ from fastapi.security import (
 )
 
 from sqlalchemy.orm import Session
-
 from app.core.security import decode_access_token
-
 from app.repositories.user_repository import get_user_by_username
+from app.models.user import User
+
+from app.repositories.device_repository import (
+    get_device_by_id,
+)
 
 
 # Bearer token autentikacija
@@ -66,3 +69,50 @@ def get_current_user(
         )
 
     return user
+
+def require_technician(
+    current_user: User = Depends(
+        get_current_user
+    ),
+):
+    """
+    Dozvoljava pristup samo tehničarima.
+    """
+
+    if current_user.role != "technician":
+        raise HTTPException(
+            status_code=403,
+            detail="Access denied",
+        )
+
+    return current_user
+
+def require_device_owner(
+    device_id: int,
+    current_user: User = Depends(
+        get_current_user
+    ),
+    db: Session = Depends(get_db),
+):
+    """
+    Provjerava je li korisnik vlasnik uređaja.
+    """
+
+    device = get_device_by_id(
+        db,
+        device_id,
+    )
+
+    if not device:
+        raise HTTPException(
+            status_code=404,
+            detail="Device not found",
+        )
+
+    if device.owner_id != current_user.id:
+        raise HTTPException(
+            status_code=403,
+            detail="Access denied",
+        )
+
+    return device
