@@ -1,7 +1,10 @@
 from app.core.database import SessionLocal
 
 from fastapi import Depends, HTTPException
-from fastapi.security import OAuth2PasswordBearer
+from fastapi.security import (
+    HTTPAuthorizationCredentials,
+    HTTPBearer,
+)
 
 from sqlalchemy.orm import Session
 
@@ -10,10 +13,8 @@ from app.core.security import decode_access_token
 from app.repositories.user_repository import get_user_by_username
 
 
-# FastAPI automatski traži Bearer token
-oauth2_scheme = OAuth2PasswordBearer(
-    tokenUrl="/auth/login"
-)
+# Bearer token autentikacija
+bearer_scheme = HTTPBearer()
 
 def get_db():
     """
@@ -31,13 +32,17 @@ def get_db():
         db.close()
 
 def get_current_user(
-    token: str = Depends(oauth2_scheme),
+    credentials: HTTPAuthorizationCredentials = Depends(
+        bearer_scheme
+    ),
     db: Session = Depends(get_db),
 ):
     """
     Dohvaća trenutno prijavljenog korisnika
     iz JWT tokena.
     """
+    # JWT token iz Authorization headera
+    token = credentials.credentials
 
     # Izvuci username iz tokena
     username = decode_access_token(token)

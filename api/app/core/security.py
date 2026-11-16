@@ -71,7 +71,7 @@ def decode_access_token(
             algorithms=["HS256"],
         )
 
-        return payload.get
+        return payload.get("sub")
 
     except JWTError:
         return None
