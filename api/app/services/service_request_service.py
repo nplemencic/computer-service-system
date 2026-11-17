@@ -1,4 +1,5 @@
 from datetime import datetime
+from app.core.exceptions import ApiException
 from fastapi import HTTPException
 from app.models.service_request import (
     ServiceRequest,
@@ -36,16 +37,18 @@ def create_user_service_request(
     )
 
     if not device:
-        raise HTTPException(
+        raise ApiException(
             status_code=404,
-            detail="Device not found",
+            code="DEVICE_NOT_FOUND",
+            message="Device not found",
         )
 
     # Ownership provjera
     if device.owner_id != owner_id:
-        raise HTTPException(
+        raise ApiException(
             status_code=403,
-            detail="Access denied",
+            code="ACCESS_DENIED",
+            message="Access denied",
         )
 
     request = ServiceRequest(

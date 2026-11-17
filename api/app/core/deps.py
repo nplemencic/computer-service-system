@@ -1,5 +1,7 @@
 from app.core.database import SessionLocal
 
+from app.core.exceptions import ApiException
+
 from fastapi import Depends, HTTPException
 from fastapi.security import (
     HTTPAuthorizationCredentials,
@@ -80,9 +82,10 @@ def require_technician(
     """
 
     if current_user.role != "technician":
-        raise HTTPException(
+        raise ApiException(
             status_code=403,
-            detail="Access denied",
+            code="ACCESS_DENIED",
+            message="Access denied",
         )
 
     return current_user
