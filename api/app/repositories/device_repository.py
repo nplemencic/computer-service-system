@@ -16,3 +16,33 @@ def get_device_by_id(
         .filter(Device.id == device_id)
         .first()
     )
+
+def create_device(
+    db: Session,
+    device: Device,
+) -> Device:
+    """
+    Sprema novi uređaj u bazu.
+    """
+
+    db.add(device)
+
+    db.commit()
+
+    db.refresh(device)
+
+    return device
+
+def get_devices_by_owner(
+    db: Session,
+    owner_id: int,
+) -> list[Device]:
+    """
+    Dohvaća sve uređaje korisnika.
+    """
+
+    return (
+        db.query(Device)
+        .filter(Device.owner_id == owner_id)
+        .all()
+    )
