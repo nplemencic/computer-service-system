@@ -16,3 +16,13 @@ __pycache__/
 
 # Pytest
 .pytest_cache/
+
+# Ruff
+.ruff_cache/
+
+# Python environments
+venv/
+
+# Local configuration
+.env.*
+!.env.example
