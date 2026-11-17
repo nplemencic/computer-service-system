@@ -7,6 +7,9 @@ from app.routers.devices import (
     router as devices_router
 )
 
+from app.routers.service_requests import (
+    router as service_requests_router
+)
 
 
 def create_app(config: Settings = settings) -> FastAPI:
@@ -35,6 +38,12 @@ def create_app(config: Settings = settings) -> FastAPI:
         prefix="/devices",
         tags=["devices"],
     )
+
+    app.include_router(
+        service_requests_router,
+        prefix="/service-requests",
+        tags=["service-requests"],
+    )   
 
     return app
 
