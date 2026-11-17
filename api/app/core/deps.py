@@ -1,25 +1,20 @@
-from app.core.database import SessionLocal
-
-from app.core.exceptions import ApiException
-
-from fastapi import Depends, HTTPException
+from fastapi import Depends
 from fastapi.security import (
     HTTPAuthorizationCredentials,
     HTTPBearer,
 )
-
 from sqlalchemy.orm import Session
-from app.core.security import decode_access_token
-from app.repositories.user_repository import get_user_by_username
+
+from app.core.database import SessionLocal
+from app.core.errors import AppError
+from app.core.security import decode_token
 from app.models.user import User
+from app.repositories.user_repository import get_user_by_username
 
-from app.repositories.device_repository import (
-    get_device_by_id,
-)
+# auto_error=False: zaglavlje koje nedostaje obrađujemo sami,
+# da odgovor ima isti oblik kao sve ostale pogreške
+bearer_scheme = HTTPBearer(auto_error=False)
 
-
-# Bearer token autentikacija
-bearer_scheme = HTTPBearer()
 
 def get_db():
     """
@@ -36,86 +31,49 @@ def get_db():
     finally:
         db.close()
 
+
 def get_current_user(
-    credentials: HTTPAuthorizationCredentials = Depends(
-        bearer_scheme
-    ),
+    credentials: HTTPAuthorizationCredentials | None = Depends(bearer_scheme),
     db: Session = Depends(get_db),
-):
+) -> User:
     """
-    Dohvaća trenutno prijavljenog korisnika
-    iz JWT tokena.
+    Dohvaća prijavljenog korisnika iz access tokena.
+    Zapis se čita iz baze pa deaktiviran račun gubi pristup odmah.
     """
-    # JWT token iz Authorization headera
-    token = credentials.credentials
 
-    # Izvuci username iz tokena
-    username = decode_access_token(token)
-
-    if not username:
-        raise HTTPException(
-            status_code=401,
-            detail="Invalid token",
+    if credentials is None:
+        raise AppError(
+            "invalid_credentials",
+            "Prijava je obavezna",
+            401,
         )
 
-    # Potraži korisnika u bazi
-    user = get_user_by_username(
-        db,
-        username,
-    )
+    username = decode_token(credentials.credentials, "access")
 
-    if not user:
-        raise HTTPException(
-            status_code=401,
-            detail="User not found",
+    user = get_user_by_username(db, username)
+
+    if not user or not user.is_active:
+        raise AppError(
+            "invalid_credentials",
+            "Korisnik ne postoji ili nije aktivan",
+            401,
         )
 
     return user
 
+
 def require_technician(
-    current_user: User = Depends(
-        get_current_user
-    ),
-):
+    current_user: User = Depends(get_current_user),
+) -> User:
     """
     Dozvoljava pristup samo tehničarima.
     """
 
     if current_user.role != "technician":
-        raise ApiException(
-            status_code=403,
-            code="ACCESS_DENIED",
-            message="Access denied",
+        raise AppError(
+            "forbidden",
+            "Nemate ovlasti za ovu radnju",
+            403,
         )
 
     return current_user
-
-def require_device_owner(
-    device_id: int,
-    current_user: User = Depends(
-        get_current_user
-    ),
-    db: Session = Depends(get_db),
-):
-    """
-    Provjerava je li korisnik vlasnik uređaja.
-    """
-
-    device = get_device_by_id(
-        db,
-        device_id,
-    )
-
-    if not device:
-        raise HTTPException(
-            status_code=404,
-            detail="Device not found",
-        )
-
-    if device.owner_id != current_user.id:
-        raise HTTPException(
-            status_code=403,
-            detail="Access denied",
-        )
-
-    return device

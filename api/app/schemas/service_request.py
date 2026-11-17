@@ -1,6 +1,27 @@
 from datetime import datetime
+from typing import Annotated, Literal
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict, StringConstraints
+
+RequestStatus = Literal["OPEN", "IN_PROGRESS", "COMPLETED"]
+
+Title = Annotated[
+    str,
+    StringConstraints(
+        strip_whitespace=True,
+        min_length=1,
+        max_length=100,
+    ),
+]
+
+Description = Annotated[
+    str,
+    StringConstraints(
+        strip_whitespace=True,
+        min_length=1,
+        max_length=2000,
+    ),
+]
 
 
 class ServiceRequestCreate(BaseModel):
@@ -9,8 +30,17 @@ class ServiceRequestCreate(BaseModel):
     """
 
     device_id: int
-    title: str
-    description: str
+    title: Title
+    description: Description
+
+
+class ServiceRequestStatusUpdate(BaseModel):
+    """
+    Promjena statusa servisnog zahtjeva.
+    Nepoznat status odbija shema (422); dopušten prijelaz provjerava servis.
+    """
+
+    status: RequestStatus
 
 
 class ServiceRequestResponse(BaseModel):
@@ -18,8 +48,9 @@ class ServiceRequestResponse(BaseModel):
     Podaci koje API vraća o zahtjevu.
     """
 
-    id: int
+    model_config = ConfigDict(from_attributes=True)
 
+    id: int
     device_id: int
 
     title: str
@@ -29,15 +60,3 @@ class ServiceRequestResponse(BaseModel):
 
     created_at: datetime
     updated_at: datetime
-
-    class Config:
-        from_attributes = True
-
-class ServiceRequestStatusUpdate(
-    BaseModel
-):
-    """
-    Promjena statusa servisnog zahtjeva.
-    """
-
-    status: str

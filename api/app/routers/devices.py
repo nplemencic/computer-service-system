@@ -1,84 +1,54 @@
-from fastapi import APIRouter, Depends
-
-from app.core.deps import require_device_owner
-
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
-from app.core.deps import (
-    get_current_user,
-    get_db,
-)
-
+from app.core.deps import get_current_user, get_db
 from app.models.user import User
-
-from app.schemas.device import (
-    DeviceCreate,
-    DeviceResponse,
-)
-
+from app.schemas.device import DeviceCreate, DeviceResponse
 from app.services.device_service import (
     create_user_device,
+    get_user_device,
     get_user_devices,
 )
 
 router = APIRouter()
 
-@router.get(
-    "",
-    response_model=list[DeviceResponse],
-)
+
+@router.get("", response_model=list[DeviceResponse])
 def get_devices(
-    limit: int = 10,
-    offset: int = 0,
-
-    current_user: User = Depends(
-        get_current_user
-    ),
-
-    db: Session = Depends(
-        get_db
-    ),
+    limit: int = Query(20, ge=1, le=100),
+    offset: int = Query(0, ge=0),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
 ):
     """
-    Popis uređaja korisnika uz straničenje.
+    Popis uređaja prijavljenog korisnika uz straničenje.
     """
 
-    return get_user_devices(
-        db,
-        current_user.id,
-        limit,
-        offset,
-    )
+    return get_user_devices(db, current_user.id, limit, offset)
 
 
-@router.get("/{device_id}")
+@router.get("/{device_id}", response_model=DeviceResponse)
 def get_device(
-    device=Depends(
-        require_device_owner
-    ),
+    device_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
 ):
     """
-    Test ownership provjere.
+    Podaci o uređaju; dostupno samo vlasniku.
     """
 
-    return {
-        "device_id": device.id,
-        "manufacturer": device.manufacturer,
-        "model": device.model,
-    }
+    return get_user_device(db, device_id, current_user)
+
 
 @router.post(
     "",
     response_model=DeviceResponse,
+    status_code=201,
 )
 def create_device(
     data: DeviceCreate,
-    current_user: User = Depends(
-        get_current_user
-    ),
-    db: Session = Depends(
-        get_db
-    ),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
 ):
     """
     Kreira novi uređaj prijavljenog korisnika.

@@ -1,17 +1,16 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
 from datetime import datetime
+from typing import TYPE_CHECKING
 
 from sqlalchemy import DateTime, ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.models.base import Base
+from app.models.base import Base, utc_now
 
 if TYPE_CHECKING:
-    from app.models.user import User
     from app.models.service_request import ServiceRequest
+    from app.models.user import User
 
 
 class Device(Base):
@@ -21,9 +20,7 @@ class Device(Base):
 
     __tablename__ = "devices"
 
-    id: Mapped[int] = mapped_column(
-        primary_key=True
-    )
+    id: Mapped[int] = mapped_column(primary_key=True)
 
     # Vlasnik uređaja
     owner_id: Mapped[int] = mapped_column(
@@ -49,7 +46,7 @@ class Device(Base):
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime,
-        default=datetime.utcnow,
+        default=utc_now,
         nullable=False,
     )
 

@@ -1,12 +1,14 @@
 from datetime import datetime
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class UserResponse(BaseModel):
     """
-    Podaci o korisniku koje vraćamo klijentu.
+    Podaci o korisniku koje vraćamo klijentu (bez hasha lozinke).
     """
+
+    model_config = ConfigDict(from_attributes=True)
 
     id: int
     username: str
@@ -14,49 +16,29 @@ class UserResponse(BaseModel):
     is_active: bool
     created_at: datetime
 
-    class Config:
-        from_attributes = True
 
 class LoginRequest(BaseModel):
     """
     Podaci za prijavu korisnika.
     """
 
-    username: str
-    password: str
+    username: str = Field(min_length=1)
+    password: str = Field(min_length=1)
 
-class TokenResponse(BaseModel):
-    """
-    JWT token koji vraća API nakon uspješne prijave.
-    """
 
-    access_token: str
-    token_type: str
-
-class TokenData(BaseModel):
+class RefreshTokenRequest(BaseModel):
     """
-    Podaci iz JWT tokena.
+    Refresh token poslan na obnovu.
     """
 
-    username: str
+    refresh_token: str = Field(min_length=1)
 
-class RefreshTokenRequest(
-    BaseModel
-):
-    """
-    Refresh JWT token.
-    """
 
-    refresh_token: str
-
-class TokenPairResponse(
-    BaseModel
-):
+class TokenPairResponse(BaseModel):
     """
     Access i refresh token.
     """
 
     access_token: str
     refresh_token: str
-
-    token_type: str
+    token_type: str = "bearer"

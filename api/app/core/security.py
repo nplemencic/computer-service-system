@@ -1,13 +1,18 @@
+from datetime import UTC, datetime, timedelta
+
 import bcrypt
-from datetime import datetime, timedelta, UTC
-from jose import jwt
+from jose import JWTError, jwt
+from jose.exceptions import ExpiredSignatureError
+
 from app.core.config import settings
-from jose import JWTError
+from app.core.errors import AppError
+
+ALGORITHM = "HS256"
 
 
 def hash_password(password: str) -> str:
     """
-    Stvara bcrypt hash lozinke.
+    Stvara bcrypt hash lozinke (salt je dio samog zapisa).
     """
 
     hashed = bcrypt.hashpw(
@@ -26,93 +31,99 @@ def verify_password(
     Provjerava odgovara li lozinka hash vrijednosti.
     """
 
-    return bcrypt.checkpw(
-        password.encode(),
-        password_hash.encode(),
-    )
+    try:
+        return bcrypt.checkpw(
+            password.encode(),
+            password_hash.encode(),
+        )
+    except ValueError:
+        # bcrypt 5 odbija lozinke dulje od 72 bajta
+        return False
 
-def create_access_token(
+
+def _create_token(
     subject: str,
+    token_type: str,
+    expires_delta: timedelta,
 ) -> str:
-    """
-    Stvara JWT access token.
-    """
-
-    expires_at = datetime.now(UTC) + timedelta(
-        minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES
-    )
-
     payload = {
         "sub": subject,
-        "exp": expires_at,
+        "type": token_type,
+        "exp": datetime.now(UTC) + expires_delta,
     }
 
     return jwt.encode(
         payload,
         settings.JWT_SECRET,
-        algorithm="HS256",
+        algorithm=ALGORITHM,
     )
 
-def create_refresh_token(
-    subject: str,
-) -> str:
+
+def create_access_token(subject: str) -> str:
     """
-    Stvara JWT refresh token.
+    Stvara kratkotrajni JWT access token.
     """
 
-    expires_at = datetime.now(UTC) + timedelta(
-        days=settings.REFRESH_TOKEN_EXPIRE_DAYS
+    return _create_token(
+        subject,
+        "access",
+        timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES),
     )
 
-    payload = {
-        "sub": subject,
-        "type": "refresh",
-        "exp": expires_at,
-    }
 
-    return jwt.encode(
-        payload,
-        settings.JWT_SECRET,
-        algorithm="HS256",
+def create_refresh_token(subject: str) -> str:
+    """
+    Stvara dugotrajni JWT refresh token.
+    """
+
+    return _create_token(
+        subject,
+        "refresh",
+        timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS),
     )
 
-def decode_access_token(
-    token: str,
-) -> str | None:
+
+def decode_token(token: str, token_type: str) -> str:
     """
-    Dekodira JWT token.
+    Dekodira token i vraća `sub` (korisničko ime).
+
+    Odbija istekao token (token_expired), neispravan potpis i token
+    krive vrste, npr. refresh token poslan kao access (invalid_credentials).
     """
 
     try:
         payload = jwt.decode(
             token,
             settings.JWT_SECRET,
-            algorithms=["HS256"],
+            algorithms=[ALGORITHM],
+        )
+    except ExpiredSignatureError:
+        raise AppError(
+            "token_expired",
+            "Token je istekao",
+            401,
+        )
+    except JWTError:
+        raise AppError(
+            "invalid_credentials",
+            "Neispravan token",
+            401,
         )
 
-        return payload.get("sub")
-
-    except JWTError:
-        return None
-
-def decode_refresh_token(
-    token: str,
-) -> str | None:
-    """
-    Dekodira refresh token.
-    """
-
-    try:
-        payload = jwt.decode(
-            token,
-            settings.JWT_SECRET,
-            algorithms=["HS256"],
+    if payload.get("type") != token_type:
+        raise AppError(
+            "invalid_credentials",
+            "Neispravna vrsta tokena",
+            401,
         )
 
-        if payload.get("type") != "refresh":
-            return None
+    subject = payload.get("sub")
 
-        return payload.get("sub")
+    if not subject:
+        raise AppError(
+            "invalid_credentials",
+            "Neispravan token",
+            401,
+        )
 
-    except JWTError:
-        return None
+    return subject

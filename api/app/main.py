@@ -1,14 +1,13 @@
-import app.models
+import app.models  # noqa: F401  (registrira modele u metapodatcima)
 from fastapi import FastAPI
-from app.core.config import Settings, settings
-from app.routers.health import router as health_router
-from app.routers.auth import router as auth_router
-from app.routers.devices import (
-    router as devices_router
-)
 
+from app.core.config import Settings, settings
+from app.core.errors import register_error_handlers
+from app.routers.auth import router as auth_router
+from app.routers.devices import router as devices_router
+from app.routers.health import router as health_router
 from app.routers.service_requests import (
-    router as service_requests_router
+    router as service_requests_router,
 )
 
 
@@ -20,6 +19,8 @@ def create_app(config: Settings = settings) -> FastAPI:
         title=config.APP_NAME,
         debug=config.ENV == "dev",
     )
+
+    register_error_handlers(app)
 
     app.include_router(
         health_router,
@@ -43,7 +44,7 @@ def create_app(config: Settings = settings) -> FastAPI:
         service_requests_router,
         prefix="/service-requests",
         tags=["service-requests"],
-    )   
+    )
 
     return app
 

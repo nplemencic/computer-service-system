@@ -11,11 +11,8 @@ def get_device_by_id(
     Dohvaća uređaj prema ID-u.
     """
 
-    return (
-        db.query(Device)
-        .filter(Device.id == device_id)
-        .first()
-    )
+    return db.query(Device).filter(Device.id == device_id).first()
+
 
 def create_device(
     db: Session,
@@ -26,19 +23,18 @@ def create_device(
     """
 
     db.add(device)
-
     db.commit()
-
     db.refresh(device)
 
     return device
+
 
 def get_devices_by_owner(
     db: Session,
     owner_id: int,
     limit: int,
     offset: int,
-):
+) -> list[Device]:
     """
     Dohvaća uređaje korisnika uz straničenje.
     """
@@ -46,6 +42,7 @@ def get_devices_by_owner(
     return (
         db.query(Device)
         .filter(Device.owner_id == owner_id)
+        .order_by(Device.id)
         .offset(offset)
         .limit(limit)
         .all()
