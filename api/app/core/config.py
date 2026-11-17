@@ -14,6 +14,9 @@ class Settings(BaseSettings):
     # Trajanje access tokena u minutama
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
 
+    # Trajanje refresh tokena
+    REFRESH_TOKEN_EXPIRE_DAYS: int = 7
+
     # Veza prema PostgreSQL bazi
     DATABASE_URL: str
 

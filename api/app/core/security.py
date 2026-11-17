@@ -53,6 +53,29 @@ def create_access_token(
         algorithm="HS256",
     )
 
+def create_refresh_token(
+    subject: str,
+) -> str:
+    """
+    Stvara JWT refresh token.
+    """
+
+    expires_at = datetime.now(UTC) + timedelta(
+        days=settings.REFRESH_TOKEN_EXPIRE_DAYS
+    )
+
+    payload = {
+        "sub": subject,
+        "type": "refresh",
+        "exp": expires_at,
+    }
+
+    return jwt.encode(
+        payload,
+        settings.JWT_SECRET,
+        algorithm="HS256",
+    )
+
 def decode_access_token(
     token: str,
 ) -> str | None:
@@ -66,6 +89,28 @@ def decode_access_token(
             settings.JWT_SECRET,
             algorithms=["HS256"],
         )
+
+        return payload.get("sub")
+
+    except JWTError:
+        return None
+
+def decode_refresh_token(
+    token: str,
+) -> str | None:
+    """
+    Dekodira refresh token.
+    """
+
+    try:
+        payload = jwt.decode(
+            token,
+            settings.JWT_SECRET,
+            algorithms=["HS256"],
+        )
+
+        if payload.get("type") != "refresh":
+            return None
 
         return payload.get("sub")
 

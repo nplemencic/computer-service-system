@@ -39,3 +39,24 @@ class TokenData(BaseModel):
     """
 
     username: str
+
+class RefreshTokenRequest(
+    BaseModel
+):
+    """
+    Refresh JWT token.
+    """
+
+    refresh_token: str
+
+class TokenPairResponse(
+    BaseModel
+):
+    """
+    Access i refresh token.
+    """
+
+    access_token: str
+    refresh_token: str
+
+    token_type: str
