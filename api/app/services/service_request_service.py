@@ -1,4 +1,5 @@
 from datetime import datetime
+from fastapi import HTTPException
 from app.models.service_request import (
     ServiceRequest,
 )
@@ -8,21 +9,44 @@ from app.repositories.service_request_repository import (
     get_service_requests_by_device_ids,
     get_service_request_by_id,
     update_service_request,
+    get_all_service_requests,
 )
 
 from app.repositories.device_repository import (
     get_devices_by_owner,
+    get_device_by_id,
 )
 
 def create_user_service_request(
     db,
+    owner_id: int,
     device_id: int,
     title: str,
     description: str,
 ) -> ServiceRequest:
     """
-    Kreira novi servisni zahtjev.
+    Kreira novi servisni zahtjev samo za uređaj
+    koji pripada prijavljenom korisniku.
     """
+
+    # Provjeri postoji li uređaj
+    device = get_device_by_id(
+        db,
+        device_id,
+    )
+
+    if not device:
+        raise HTTPException(
+            status_code=404,
+            detail="Device not found",
+        )
+
+    # Ownership provjera
+    if device.owner_id != owner_id:
+        raise HTTPException(
+            status_code=403,
+            detail="Access denied",
+        )
 
     request = ServiceRequest(
         device_id=device_id,
@@ -76,6 +100,20 @@ def change_request_status(
     if not request:
         return None
 
+    # Dozvoljeni statusi
+    allowed_statuses = [
+        "OPEN",
+        "IN_PROGRESS",
+        "COMPLETED",
+    ]
+
+    # Validacija poslovnog pravila
+    if status not in allowed_statuses:
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid status",
+        )
+
     request.status = status
 
     # Ažuriramo vrijeme zadnje promjene
@@ -85,3 +123,17 @@ def change_request_status(
         db,
         request,
     )
+
+def get_all_requests(
+    db,
+):
+    """
+    Dohvaća sve servisne zahtjeve.
+    """
+
+    return get_all_service_requests(
+        db,
+    )
+
+    
+

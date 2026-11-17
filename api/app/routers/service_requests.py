@@ -20,6 +20,7 @@ from app.services.service_request_service import (
     create_user_service_request,
     get_user_service_requests,
     change_request_status,
+    get_all_requests,
 )
 
 router = APIRouter()
@@ -43,6 +44,7 @@ def create_service_request(
 
     return create_user_service_request(
         db=db,
+        owner_id=current_user.id,
         device_id=data.device_id,
         title=data.title,
         description=data.description,
@@ -97,3 +99,24 @@ def update_status(
     )
 
     return request
+
+@router.get(
+    "/all",
+    response_model=list[ServiceRequestResponse],
+)
+def get_all_service_requests(
+    current_user: User = Depends(
+        require_technician
+    ),
+    db: Session = Depends(
+        get_db
+    ),
+):
+    """
+    Prikaz svih servisnih zahtjeva.
+    Dostupno samo tehničaru.
+    """
+
+    return get_all_requests(
+        db,
+    )
