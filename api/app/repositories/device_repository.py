@@ -36,13 +36,17 @@ def create_device(
 def get_devices_by_owner(
     db: Session,
     owner_id: int,
-) -> list[Device]:
+    limit: int,
+    offset: int,
+):
     """
-    Dohvaća sve uređaje korisnika.
+    Dohvaća uređaje korisnika uz straničenje.
     """
 
     return (
         db.query(Device)
         .filter(Device.owner_id == owner_id)
+        .offset(offset)
+        .limit(limit)
         .all()
     )

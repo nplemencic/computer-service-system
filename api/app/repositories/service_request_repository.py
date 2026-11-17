@@ -22,22 +22,28 @@ def create_service_request(
 
 def get_all_service_requests(
     db: Session,
+    limit: int,
+    offset: int,
 ):
     """
-    Dohvaća sve servisne zahtjeve.
+    Dohvaća sve zahtjeve uz straničenje.
     """
 
     return (
         db.query(ServiceRequest)
+        .offset(offset)
+        .limit(limit)
         .all()
     )
 
 def get_service_requests_by_device_ids(
     db: Session,
     device_ids: list[int],
+    limit: int,
+    offset: int,
 ):
     """
-    Dohvaća servisne zahtjeve za zadane uređaje.
+    Dohvaća servisne zahtjeve uz straničenje.
     """
 
     return (
@@ -47,6 +53,8 @@ def get_service_requests_by_device_ids(
                 device_ids
             )
         )
+        .offset(offset)
+        .limit(limit)
         .all()
     )
 

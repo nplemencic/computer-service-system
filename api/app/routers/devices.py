@@ -28,20 +28,26 @@ router = APIRouter()
     response_model=list[DeviceResponse],
 )
 def get_devices(
+    limit: int = 10,
+    offset: int = 0,
+
     current_user: User = Depends(
         get_current_user
     ),
+
     db: Session = Depends(
         get_db
     ),
 ):
     """
-    Vraća sve uređaje prijavljenog korisnika.
+    Popis uređaja korisnika uz straničenje.
     """
 
     return get_user_devices(
         db,
         current_user.id,
+        limit,
+        offset,
     )
 
 

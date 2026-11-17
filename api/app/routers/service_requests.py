@@ -55,6 +55,8 @@ def create_service_request(
     response_model=list[ServiceRequestResponse],
 )
 def get_service_requests(
+    limit: int = 10,
+    offset: int = 0,
     current_user: User = Depends(
         get_current_user
     ),
@@ -69,6 +71,8 @@ def get_service_requests(
     return get_user_service_requests(
         db,
         current_user.id,
+        limit,
+        offset,
     )
 
 @router.patch(
@@ -105,6 +109,8 @@ def update_status(
     response_model=list[ServiceRequestResponse],
 )
 def get_all_service_requests(
+    limit: int = 10,
+    offset: int = 0,
     current_user: User = Depends(
         require_technician
     ),
@@ -119,4 +125,6 @@ def get_all_service_requests(
 
     return get_all_requests(
         db,
+        limit,
+        offset,
     )

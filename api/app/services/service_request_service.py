@@ -62,7 +62,9 @@ def create_user_service_request(
 
 def get_user_service_requests(
     db,
-    owner_id: int,
+    owner_id,
+    limit,
+    offset,
 ):
     """
     Dohvaća sve servisne zahtjeve korisnika.
@@ -71,6 +73,8 @@ def get_user_service_requests(
     devices = get_devices_by_owner(
         db,
         owner_id,
+        1000,
+        0,
     )
 
     device_ids = [
@@ -81,6 +85,8 @@ def get_user_service_requests(
     return get_service_requests_by_device_ids(
         db,
         device_ids,
+        limit,
+        offset,
     )
 
 def change_request_status(
@@ -126,6 +132,8 @@ def change_request_status(
 
 def get_all_requests(
     db,
+    limit: int,
+    offset: int,
 ):
     """
     Dohvaća sve servisne zahtjeve.
@@ -133,6 +141,8 @@ def get_all_requests(
 
     return get_all_service_requests(
         db,
+        limit,
+        offset,
     )
 
     

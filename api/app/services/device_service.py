@@ -32,12 +32,16 @@ def create_user_device(
 def get_user_devices(
     db,
     owner_id: int,
+    limit: int,
+    offset: int,
 ):
     """
-    Dohvaća sve uređaje korisnika.
+    Dohvaća uređaje korisnika uz straničenje.
     """
 
     return get_devices_by_owner(
         db,
         owner_id,
+        limit,
+        offset,
     )
